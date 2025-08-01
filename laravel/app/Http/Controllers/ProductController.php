@@ -17,31 +17,32 @@ class ProductController extends Controller
         return view('products.index', compact('products'));
     }
 
+    public function seeProductDetails(int $id) {
+        $product = Product::find($id);
+        return view('products.show', compact('product'));
+    }
+
     public function createProduct(Request $request) {
+        // dd($request->all());
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'sale_price' => 'required|numeric',
             'cost_price' => 'nullable|numeric',
             'type' => 'required|string|in:simple,compound',
             'start_quantity' => 'nullable|numeric|min:0',
+            'components' => 'nullable|array',
         ]);
 
         if($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao criar produto.',
-                'errors' => $validator->errors(),
-            ], 400);
+            return redirect()->route('products.create')->with('errors', $validator->errors());
         }
 
         if ($request->type === 'compound') {
             $simpleProducts = Product::where('type', 'simple')->get();
 
             if (count($simpleProducts) === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Para criar um produto composto, é necessário ter produtos simples no estoque.',
-                ], 400);
+                return redirect()->route('products.create')->with('errors', 'Para criar um produto composto, é necessário ter produtos simples no estoque.');
             }
 
             $compoundProduct = Product::create([
@@ -58,10 +59,7 @@ class ProductController extends Controller
                 if (!$simpleProduct) {
                     $compoundProduct->delete();
 
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Produto simples não encontrado.',
-                    ], 404);
+                    return redirect()->route('products.create')->with('errors', 'Produto simples não encontrado.');
                 }
 
                 // add simple product to create compound product
@@ -79,11 +77,7 @@ class ProductController extends Controller
             $compoundProduct->cost_price = $costPrice;
             $compoundProduct->save();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Produto composto criado e adicionado ao estoque.',
-                'product' => $compoundProduct,
-            ], 201);
+            return redirect()->route('products.index')->with('success', 'Produto composto criado e adicionado ao estoque.');
 
         } else if ($request->type === 'simple') {
             $product = Product::create($request->all());
@@ -104,11 +98,18 @@ class ProductController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Produto criado e adicionado ao estoque.',
-            'product' => $product,
-        ], 201);
+        return redirect()->route('products.index')->with('success', 'Produto criado e adicionado ao estoque.');
+    }
+
+    public function createProductForm() {
+        $productTypes = [
+            'Simples' => 'simple',
+            'Composto' => 'compound'
+        ];
+
+        $simpleProducts = Product::where('type', 'simple')->get();
+
+        return view('products.create', compact('productTypes', 'simpleProducts'));
     }
 
     public function updateProduct(Request $request, int $id) {
@@ -120,30 +121,20 @@ class ProductController extends Controller
         ]);
 
         if($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao atualizar produto.',
-                'errors' => $validator->errors(),
-            ], 400);
+            return view('products.edit')->with('errors', $validator->errors());
         }
 
         $product = Product::find($id);
 
-        if(!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Produto não encontrado.',
-            ], 404);
-        }
+        // if(!$product) {
+        //     return view('products.edit')->with('errors', 'Produto não encontrado.');
+        // }
 
         $oldType = $product->type;
         $newType = $request->type;
 
         if ($oldType !== $newType) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Não é possível "transformar" um produto simples em composto e vice-versa.',
-            ], 400);
+            return view('products.edit')->with('errors', 'Não é possível "transformar" um produto simples em composto e vice-versa.');
         }
 
         if($newType === 'simple') {
@@ -162,10 +153,7 @@ class ProductController extends Controller
                     $simpleProd = Product::find($component['id']);
 
                     if ($simpleProd->type !== 'simple') {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Este produto está classificado como composto.',
-                        ]);
+                        return view('products.edit')->with('errors', 'Este produto está classificado como composto.');
                     }
 
                     ProductCompose::create([
@@ -183,31 +171,21 @@ class ProductController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Produto atualizado.',
-            'product' => $product,
-        ]);
+        return view('products.edit')->with('success', 'Produto atualizado.');
     }
 
     public function deleteProduct(int $id) {
         $product = Product::find($id);
 
         if(!$product) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Produto não encontrado.',
-            ]);
+            return view('products.edit')->with('errors', 'Produto não encontrado.');
         }
 
         if($product->type === 'simple') {
             $compoundProdComponent = ProductCompose::where('simple_product_id', $product->id)->first();
 
             if ($compoundProdComponent) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Este produto está sendo usado em compostos, não é possível remover.',
-                ], 500);
+                return view('products.edit')->with('errors', 'Este produto está sendo usado em compostos, não é possível remover.');
             }
 
             Stock::where('product_id', $product->id)->delete();
@@ -217,9 +195,6 @@ class ProductController extends Controller
             $product->delete();
         }   
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Produto removido.',
-        ]);
+        return view('products.index');
     }
 }
