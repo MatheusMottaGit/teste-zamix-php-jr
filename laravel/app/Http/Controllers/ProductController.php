@@ -19,7 +19,22 @@ class ProductController extends Controller
 
     public function seeProductDetails(int $id) {
         $product = Product::find($id);
-        return view('products.show', compact('product'));
+
+        if ($product->type === 'compound') {
+            $components = ProductCompose::where('compound_product_id', $product->id)->get();
+            
+            $compoundComponents = [];
+
+            if (count($components) > 0) {
+                foreach($components as $component) {
+                    $compoundComponents[] = [
+                        'component_name' => Product::find($component['simple_product_id'])->name 
+                    ];
+                }
+            }
+        }
+
+        return view('products.show', compact('product', 'compoundComponents'));
     }
 
     public function createProduct(Request $request) {
@@ -113,6 +128,7 @@ class ProductController extends Controller
     }
 
     public function updateProduct(Request $request, int $id) {
+        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'sale_price' => 'required|numeric',
@@ -121,7 +137,7 @@ class ProductController extends Controller
         ]);
 
         if($validator->fails()) {
-            return view('products.edit')->with('errors', $validator->errors());
+            return redirect()->route('products.index')->with('errors', $validator->errors());
         }
 
         $product = Product::find($id);
@@ -134,7 +150,7 @@ class ProductController extends Controller
         $newType = $request->type;
 
         if ($oldType !== $newType) {
-            return view('products.edit')->with('errors', 'Não é possível "transformar" um produto simples em composto e vice-versa.');
+            return redirect()->route('products.index')->with('errors', 'Não é possível "transformar" um produto simples em composto e vice-versa.');
         }
 
         if($newType === 'simple') {
@@ -153,7 +169,7 @@ class ProductController extends Controller
                     $simpleProd = Product::find($component['id']);
 
                     if ($simpleProd->type !== 'simple') {
-                        return view('products.edit')->with('errors', 'Este produto está classificado como composto.');
+                        return redirect()->route('products.index')->with('errors', 'Este produto está classificado como composto.');
                     }
 
                     ProductCompose::create([
@@ -171,30 +187,49 @@ class ProductController extends Controller
             }
         }
 
-        return view('products.edit')->with('success', 'Produto atualizado.');
+        return redirect()->route('products.index')->with('success', 'Produto atualizado.');
+    }
+
+    public function updateProductForm(int $id) {
+        $product = Product::find($id);
+
+        $productTypes = [
+            'simple' => 'Simples',
+            'compound' => 'Composto'
+        ];
+
+        return view('products.edit', compact('product', 'productTypes'));
     }
 
     public function deleteProduct(int $id) {
         $product = Product::find($id);
 
         if(!$product) {
-            return view('products.edit')->with('errors', 'Produto não encontrado.');
+            return redirect()->route('products.index')->with('errors', 'Produto não encontrado.');
         }
 
         if($product->type === 'simple') {
             $compoundProdComponent = ProductCompose::where('simple_product_id', $product->id)->first();
 
             if ($compoundProdComponent) {
-                return view('products.edit')->with('errors', 'Este produto está sendo usado em compostos, não é possível remover.');
+                return redirect()->route('products.index')->with('errors', 'Este produto está sendo usado em compostos, não é possível remover.');
+            }
+            
+            $productMovements = StockMovement::where('product_id', $product->id)->get();
+
+            if ($productMovements->count() > 0) {
+                return redirect()->route('products.index')->with('errors', 'Este produto possui movimentações registradas, não é possível removê-lo.');
             }
 
             Stock::where('product_id', $product->id)->delete();
+
             $product->delete();
         } else if ($product->type === 'compound') {
             ProductCompose::where('compound_product_id', $product->id)->delete();
+
             $product->delete();
         }   
 
-        return view('products.index');
+        return redirect()->route('products.index')->with('success', 'Produto removido.');
     }
 }
