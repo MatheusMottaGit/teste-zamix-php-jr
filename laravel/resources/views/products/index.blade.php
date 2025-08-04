@@ -23,8 +23,8 @@
     </div>
 
     @if (count($products) === 0)
-      <div class="card">
-        <p>
+      <div class="card mt-3 p-3 pb-0">
+        <p class="text-center">
           <i>Não existem produtos no estoque, no momento.</i>
         </p>
       </div>

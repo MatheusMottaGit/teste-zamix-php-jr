@@ -20,10 +20,10 @@ class ProductController extends Controller
     public function seeProductDetails(int $id) {
         $product = Product::find($id);
 
+        $compoundComponents = [];
+
         if ($product->type === 'compound') {
             $components = ProductCompose::where('compound_product_id', $product->id)->get();
-            
-            $compoundComponents = [];
 
             if (count($components) > 0) {
                 foreach($components as $component) {
@@ -38,14 +38,11 @@ class ProductController extends Controller
     }
 
     public function createProduct(Request $request) {
-        // dd($request->all());
-
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'sale_price' => 'required|numeric',
             'cost_price' => 'nullable|numeric',
             'type' => 'required|string|in:simple,compound',
-            'start_quantity' => 'nullable|numeric|min:0',
             'components' => 'nullable|array',
         ]);
 
@@ -53,11 +50,28 @@ class ProductController extends Controller
             return redirect()->route('products.create')->with('errors', $validator->errors());
         }
 
-        if ($request->type === 'compound') {
-            $simpleProducts = Product::where('type', 'simple')->get();
+        if ($request->type === 'simple') {
+            $product = Product::create([
+                'name' => $request->name,
+                'sale_price' => $request->sale_price,
+                'cost_price' => $request->cost_price,
+                'type' => 'simple',
+            ]);
 
-            if (count($simpleProducts) === 0) {
-                return redirect()->route('products.create')->with('errors', 'Para criar um produto composto, é necessário ter produtos simples no estoque.');
+            Stock::create([
+                'product_id' => $product->id,
+                'product_quantity' => 0, // quantia será informada na requisição
+            ]);
+
+            return redirect()->route('products.index')->with('success', 'Produto criado.');
+        } else if ($request->type === 'compound') {
+            // remove os campos nulos, caso o ao criar não precise ter algum produto
+            $components = array_filter($request->components, function ($component) {
+                return $component['quantity'] !== null && $component['quantity'] > 0;
+            });
+
+            if (count($components) === 0) {
+                return redirect()->route('products.create')->with('errors', 'Informe pelo menos um componente com quantidade.');
             }
 
             $compoundProduct = Product::create([
@@ -68,7 +82,7 @@ class ProductController extends Controller
             ]);
 
             $costPrice = 0;
-            foreach ($request->components as $component) {
+            foreach ($components as $component) {
                 $simpleProduct = Product::find($component['id']);
 
                 if (!$simpleProduct) {
@@ -77,58 +91,25 @@ class ProductController extends Controller
                     return redirect()->route('products.create')->with('errors', 'Produto simples não encontrado.');
                 }
 
-                // add simple product to create compound product
+                // adicionar um produto simples ao composto
                 ProductCompose::create([
                     'simple_product_id' => $component['id'],
                     'compound_product_id' => $compoundProduct->id,
                     'simple_product_quantity' => $component['quantity'],
                 ]);
 
-                // calculate cost price
-                $product = Product::find($component['id']);
-                $costPrice += $product->cost_price * $component['quantity'];
+                // calcular preço de custo do produto composto
+                $costPrice += $simpleProduct->cost_price * $component['quantity'];
             }
 
             $compoundProduct->cost_price = $costPrice;
             $compoundProduct->save();
 
-            return redirect()->route('products.index')->with('success', 'Produto composto criado e adicionado ao estoque.');
-
-        } else if ($request->type === 'simple') {
-            $product = Product::create($request->all());
-
-            Stock::create([
-                'product_id' => $product->id,
-                'product_quantity' => $request->start_quantity > 0 ? $request->start_quantity : 0,
-            ]);
-
-            if($request->start_quantity > 0) {
-                StockMovement::create([
-                    'product_id' => $product->id,
-                    'type' => 'in',
-                    'quantity' => $request->start_quantity,
-                    'movement_date' => now(),
-                    'cost_price' => $request->cost_price,
-                ]);
-            }
+            return redirect()->route('products.index')->with('success', 'Produto composto criado.');
         }
-
-        return redirect()->route('products.index')->with('success', 'Produto criado e adicionado ao estoque.');
-    }
-
-    public function createProductForm() {
-        $productTypes = [
-            'Simples' => 'simple',
-            'Composto' => 'compound'
-        ];
-
-        $simpleProducts = Product::where('type', 'simple')->get();
-
-        return view('products.create', compact('productTypes', 'simpleProducts'));
     }
 
     public function updateProduct(Request $request, int $id) {
-        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'sale_price' => 'required|numeric',
@@ -142,9 +123,9 @@ class ProductController extends Controller
 
         $product = Product::find($id);
 
-        // if(!$product) {
-        //     return view('products.edit')->with('errors', 'Produto não encontrado.');
-        // }
+        if(!$product) {
+            return redirect()->route('products.index')->with('errors', 'Produto não encontrado.');
+        }
 
         $oldType = $product->type;
         $newType = $request->type;
@@ -154,7 +135,11 @@ class ProductController extends Controller
         }
 
         if($newType === 'simple') {
-            $product->update($request->all());
+            $product->update([
+                'name' => $request->name,
+                'sale_price' => $request->sale_price,
+                'cost_price' => $request->cost_price,
+            ]);
         } else if($newType === 'compound') {
             $product->update([
                 'name' => $request->name,
@@ -190,17 +175,6 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produto atualizado.');
     }
 
-    public function updateProductForm(int $id) {
-        $product = Product::find($id);
-
-        $productTypes = [
-            'simple' => 'Simples',
-            'compound' => 'Composto'
-        ];
-
-        return view('products.edit', compact('product', 'productTypes'));
-    }
-
     public function deleteProduct(int $id) {
         $product = Product::find($id);
 
@@ -231,5 +205,16 @@ class ProductController extends Controller
         }   
 
         return redirect()->route('products.index')->with('success', 'Produto removido.');
+    }
+
+    public function updateProductForm(int $id) {
+        $product = Product::find($id);
+
+        $productTypes = [
+            'simple' => 'Simples',
+            'compound' => 'Composto'
+        ];
+
+        return view('products.edit', compact('product', 'productTypes'));
     }
 }

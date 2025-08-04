@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-  // register controller is handling the registration of a new user
+  // a criação de um usuário (funcionário) se dá no register controller
 
   public function listAll()
   {

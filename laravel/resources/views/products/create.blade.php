@@ -78,18 +78,6 @@
         @endif
       </div>
 
-      <div class="mb-2" id="start-quantity-container">
-        <label for="start_quantity" class="form-label">Quantia inicial (opcional)</label>
-
-        <input id="start_quantity" type="text" class="form-control" name="start_quantity" autofocus>
-
-        @if ($errors->has('start_quantity'))
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $errors->first('start_quantity') }}</strong>
-            </span>
-        @endif
-      </div>
-
       <button type="submit" class="btn btn-primary">Adicionar</button>
     </form>
   </div>
@@ -98,21 +86,17 @@
     document.addEventListener('DOMContentLoaded', function() {
       const prodType = document.getElementById('type');
       const prodCostPrice = document.getElementById('cost-price-container');
-      const prodStartQuantity = document.getElementById('start-quantity-container');
       const componentsContainer = document.getElementById('components-container');
       
       componentsContainer.style.display = 'none';
 
       prodType.addEventListener('change', () => {
         if (prodType.value === 'compound') {
-          // console.log(prodType);
-          prodStartQuantity.style.display = 'none';
           componentsContainer.style.display = 'block';
           prodCostPrice.style.display = 'none';
 
         } else if (prodType.value === 'simple') {
           prodCostPrice.style.display = 'block';
-          prodStartQuantity.style.display = 'block';
           componentsContainer.style.display = 'none';
         }
       })
