@@ -13,6 +13,7 @@ create table requests (
   id int primary key auto_increment,
   user_id int not null,
   request_date date not null,
+  description varchar(255),
   foreign key (user_id) references users(id)
 );
 
@@ -27,7 +28,7 @@ create table products (
 create table stocks (
   id int primary key auto_increment,
   product_id int not null,
-  simple_product_quantity int,
+  product_quantity int,
   foreign key (product_id) references products (id)
 );
 

@@ -1,61 +1,85 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+  <div class="container">
+    @if(session('success'))
+      <div class="alert alert-success">
+        {{ session('success') }}
+      </div>
+    @endif
+
+    @if(session('errors'))
+      <div class="alert alert-danger">
+        {{ session('errors') }}
+      </div>
+    @endif
+
     <div class="d-flex justify-content-between align-items-center">
       <h1>Detalhes de: {{ $product->name }}</h1>
 
-      <a href="{{ route('products.index') }}" class="btn btn-secondary d-flex align-items-center">
+      <a href="{{ route('products.index') }}" class="btn btn-secondary d-flex align-items-center mr-2">
         Voltar
       </a>
     </div>
 
-    <table class="mt-3 table table-bordered">
-      @php
-        $types = [
-          'simple' => 'Simples',
-          'compound' => 'Composto'
-        ];
-      @endphp
-      <thead>
-        <tr>
-          <th class="table-secondary text-center">Id</th>
-          <th class="table-secondary text-center">Nome</th>
-          <th class="table-secondary text-center">Preço de venda</th>
-          @if ($product->type !== 'compound')
+    @if ($product->type === 'simple')
+      <table class="mt-3 table table-bordered">
+        @php
+          $types = [
+            'simple' => 'Simples',
+            'compound' => 'Composto'
+          ];
+        @endphp
+        <thead>
+          <tr>
+            <th class="table-secondary text-center">Id</th>
+            <th class="table-secondary text-center">Nome</th>
+            <th class="table-secondary text-center">Preço de venda</th>
             <th class="table-secondary text-center">Preço de custo</th>
-          @endif
-          <th class="table-secondary text-center">Tipo</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="text-center">{{ $product->id }}</td>
-          <td class="text-center">{{ $product->name }}</td>
-          <td class="text-center">{{ $product->sale_price }}</td>
-          @if ($product->type !== 'compound')
+            <th class="table-secondary text-center">Tipo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-center">{{ $product->id }}</td>
+            <td class="text-center">{{ $product->name }}</td>
+            <td class="text-center">{{ $product->sale_price }}</td>
             <td class="text-center">{{ $product->cost_price }}</td>
-          @endif
-          <td class="text-center">{{ $types[$product->type] }}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    @if ($product->type === 'compound')
-      <table class="table table-bordered">
+            <td class="text-center">{{ $types[$product->type] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    @elseif ($product->type === 'compound')
+      <table class="table table-bordered mt-3">
         <thead>
           <tr>
             <th class="table-secondary text-center">Componentes</th>
+            <th class="table-secondary text-center">Quantidade</th>
           </tr>
         </thead>
         <tbody>
           @foreach ($compoundComponents as $component)
             <tr>
               <td>{{ $component['component_name'] }}</td>
+              <td>{{ $component['component_quantity'] }}</td>
             </tr>
           @endforeach
         </tbody>
       </table>
     @endif
+
+    <div class="card mt-3 p-3">
+      <form action="{{ route('stock.products.checkIn', $product->id) }}" method="POST">
+        @csrf
+        @method('POST')
+
+        <div class="form-group">
+          <label for="product_quantity">Quantidade requerida</label>
+          <input type="number" name="product_quantity" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Dar entrada no estoque</button>
+      </form>
+    </div>
   </div>
 @endsection

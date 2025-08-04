@@ -2,7 +2,11 @@
 
 @section('content')
   <div class="container">
-    <h1>Editar produto: {{ $product->name }}</h1>
+    <div class="d-flex justify-content-between align-items-center">
+      <h1>Editar produto: {{ $product->name }}</h1>
+      
+      <a href="{{ route('products.show', $product->id) }}" class="btn btn-secondary">Voltar</a>
+    </div>
 
     <form method="POST" action="{{ route('products.update', $product->id) }}" class="mt-3 container card p-4">
       @csrf
@@ -49,8 +53,18 @@
 
           <input id="cost_price" type="number" step=".01" class="form-control" value="{{ $product->cost_price }}" name="cost_price" autofocus>
         </div>
+      @endif
 
-        <div class="mb-2"></div>
+      @if ($product->type === 'compound')
+        @foreach ($componentsArray as $key => $component)
+          <div class="mb-2">
+            <label for="components" class="form-label">{{ $component['name'] }}</label>
+
+            <input type="hidden" name="components[{{ $key }}][id]" value="{{ $component['id'] }}">
+
+            <input id="quantity-{{ $key }}" type="number" class="form-control" value="{{ $component['quantity'] }}" name="components[{{ $key }}][quantity]" autofocus>
+          </div>
+        @endforeach
       @endif
 
       <button type="submit" class="btn btn-primary">Atualizar</button>

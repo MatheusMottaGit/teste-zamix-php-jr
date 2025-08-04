@@ -72,6 +72,10 @@
           @endforeach
         </tbody>
       </table>
+
+      <p class="text-muted text-xl-start">
+        <i>Para dar entrada do produto no estoque, clique em "Ver detalhes".</i>
+      </p>
     @endif
   </div>
 @endsection

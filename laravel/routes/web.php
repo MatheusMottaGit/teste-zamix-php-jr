@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\RequestController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,3 +41,14 @@ Route::get('/produtos/{id}', [ProductController::class, 'seeProductDetails'])->n
 Route::get('/produtos/{id}/editar', [ProductController::class, 'updateProductForm'])->name('products.edit'); // view
 Route::put('/produtos/{id}', [ProductController::class, 'updateProduct'])->name('products.update'); // methods
 Route::delete('/produtos/{id}', [ProductController::class, 'deleteProduct'])->name('products.delete'); // method
+
+Route::get('/requisicoes', [RequestController::class, 'listAll'])->name('requests.index'); // view
+Route::post('/requisicoes', [RequestController::class, 'startARequest'])->name('requests.register'); // method
+Route::get('/criar-requisicao', [RequestController::class, 'createRequestForm'])->name('requests.create'); // view
+Route::get('/requisicoes/{id}', [RequestController::class, 'seeRequestDetails'])->name('requests.show'); // view
+Route::get('/requisicoes/{id}/editar', [RequestController::class, 'updateRequestForm'])->name('requests.edit'); // view
+Route::put('/requisicoes/{id}', [RequestController::class, 'updateRequest'])->name('requests.update'); // methods
+Route::delete('/requisicoes/{id}', [RequestController::class, 'deleteRequest'])->name('requests.delete'); // method
+Route::post('/requisicoes/{id}/executar', [RequestController::class, 'executeRequest'])->name('requests.execute'); // method
+
+Route::post('/estoque/produto/{id}/entrada', [StockController::class, 'stockProductsCheckIn'])->name('stock.products.checkIn');

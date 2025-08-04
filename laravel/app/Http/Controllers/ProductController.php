@@ -28,7 +28,8 @@ class ProductController extends Controller
             if (count($components) > 0) {
                 foreach($components as $component) {
                     $compoundComponents[] = [
-                        'component_name' => Product::find($component['simple_product_id'])->name 
+                        'component_name' => Product::find($component['simple_product_id'])->name,
+                        'component_quantity' => $component['simple_product_quantity']
                     ];
                 }
             }
@@ -115,6 +116,9 @@ class ProductController extends Controller
             'sale_price' => 'required|numeric',
             'cost_price' => 'nullable|numeric',
             'type' => 'required|string|in:simple,compound',
+            'components' => 'nullable|array',
+            'components.*.quantity' => 'required|numeric|min:1',
+            'components.*.id' => 'required|exists:products,id',
         ]);
 
         if($validator->fails()) {
@@ -146,30 +150,32 @@ class ProductController extends Controller
                 'sale_price' => $request->sale_price
             ]);
 
-            $costPrice = 0;
-            if ($request->components && count($request->components) > 0) {
-                ProductCompose::where('compound_product_id', $product->id)->delete();
+            $totalCostPrice = 0;
+            $components = array_filter($request->components, function ($component) {
+                return $component['quantity'] !== null && $component['quantity'] > 0;
+            });
 
-                foreach ($request->components as $component) {
-                    $simpleProd = Product::find($component['id']);
+            ProductCompose::where('compound_product_id', $product->id)->delete();
 
-                    if ($simpleProd->type !== 'simple') {
-                        return redirect()->route('products.index')->with('errors', 'Este produto está classificado como composto.');
-                    }
+            foreach ($components as $component) {
+                $simpleProd = Product::find($component['id']);
 
-                    ProductCompose::create([
-                        'simple_product_id' => $component['id'],
-                        'compound_product_id' => $product->id,
-                        'simple_product_quantity' => $component['quantity']
-                    ]);
-
-                    $costPrice += $component['quantity'] * $simpleProd->cost_price;
+                if (!$simpleProd) {
+                    return redirect()->route('products.index')->with('errors', 'Produto simples não encontrado.');
                 }
 
-                $product->update([
-                    'cost_price' => $costPrice
+                ProductCompose::create([
+                    'simple_product_id' => $component['id'],
+                    'compound_product_id' => $product->id,
+                    'simple_product_quantity' => $component['quantity']
                 ]);
+
+                $totalCostPrice += $component['quantity'] * $simpleProd->cost_price;
             }
+
+            $product->update([
+                'cost_price' => $totalCostPrice
+            ]);
         }
 
         return redirect()->route('products.index')->with('success', 'Produto atualizado.');
@@ -207,6 +213,17 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Produto removido.');
     }
 
+    public function createProductForm() {
+        $simpleProducts = Product::where('type', 'simple')->get();
+
+        $productTypes = [
+            'simple' => 'Simples',
+            'compound' => 'Composto'
+        ];
+
+        return view('products.create', compact('simpleProducts', 'productTypes'));
+    }
+
     public function updateProductForm(int $id) {
         $product = Product::find($id);
 
@@ -215,6 +232,18 @@ class ProductController extends Controller
             'compound' => 'Composto'
         ];
 
-        return view('products.edit', compact('product', 'productTypes'));
+        $components = ProductCompose::where('compound_product_id', $product->id)->get();
+
+        $componentsArray = [];
+
+        foreach ($components as $component) {
+            $componentsArray[] = [
+                'id' => $component->simple_product_id,
+                'name' => Product::find($component->simple_product_id)->name,
+                'quantity' => $component->simple_product_quantity
+            ];
+        }
+
+        return view('products.edit', compact('product', 'productTypes', 'componentsArray'));
     }
 }

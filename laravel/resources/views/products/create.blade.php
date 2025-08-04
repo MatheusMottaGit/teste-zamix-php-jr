@@ -2,6 +2,18 @@
 
 @section('content')
   <div class="container">
+    @if(session('success'))
+      <div class="alert alert-success">
+        {{ session('success') }}
+      </div>
+    @endif
+
+    @if(session('errors'))
+      <div class="alert alert-danger">
+        {{ session('errors') }}
+      </div>
+    @endif
+
     <div class="d-flex justify-content-between align-items-center">
       <h1>Adicionar produto</h1>
 
@@ -32,7 +44,7 @@
           <select class="form-select w-100 prod-type" name="type" id="type" autofocus>
             <option selected>Escolha o tipo do produto</option>
             @foreach ($productTypes as $key => $type)
-              <option value="{{ $type }}">{{ $key }}</option>
+              <option value="{{ $key }}">{{ $type }}</option>
             @endforeach
           </select>
         </div>

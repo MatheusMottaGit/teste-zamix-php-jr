@@ -42,7 +42,7 @@
                                 <a class="nav-link" href="{{ route('users.index') }}">Funcionários</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="#">Relatórios</a>
+                                <a class="nav-link" href="{{ route('requests.index') }}">Requisições</a>
                             </li>
                         </ul>
                     @endif
