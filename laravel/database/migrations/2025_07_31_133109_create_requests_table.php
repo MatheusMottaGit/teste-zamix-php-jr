@@ -17,6 +17,7 @@ class CreateRequestsTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('user_id');
             $table->date('request_date');
+            $table->text('description')->nullable();
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
