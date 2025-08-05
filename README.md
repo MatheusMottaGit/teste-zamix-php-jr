@@ -4,15 +4,20 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
 
 ## Rodar o projeto
 
-1. **Ambiente normal**
-   - Se sua máquina possui `PHP >= 7.2`, apenas execute os arquivos SQL, ou então execute `php artisan migrate` na raíz do projeto.
-
-2. **Ambiente Docker**
-   - Minha máquina apenas possui `PHP 8.2`, então não seria possível utilizar a versão `Laravel 5.6`.
-   - Para isso, utilizei de um pequeno container apenas para executar a versão do PHP recomendada pela documentação.
-  ```
-      dcnwfbhjwfev
-  ```
+1. **Ambiente necessário**
+   - Sua máquina deve possuir `PHP >= 7.2`, conforme recomenda a própria [documentação do Laravel](https://laravel.com/docs/5.6/installation): 
+   - No seu SGBD, execute os arquivos SQL.
+  
+     OU
+  
+   ```
+      php artisan migrate
+   ```
+   E finalmente:
+   
+   ```
+      php artisan serve
+   ```
    
 ## Funcionalidades desenvolvidas
 
