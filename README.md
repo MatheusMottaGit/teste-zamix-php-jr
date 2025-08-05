@@ -19,4 +19,4 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
 
 ## Observações
 
-- Os scripts para o banco de dados e relatórios de entrada e saída estão no arquivo /sql
+- Os scripts para o banco de dados e relatórios de entrada e saída estão no arquivo `/sql`
