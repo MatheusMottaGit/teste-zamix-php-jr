@@ -81,7 +81,7 @@
             </div>
         </nav>
 
-        <main class="py-4">
+        <main class="d-flex align-items-center justify-content-center" style="height: calc(100vh - 56px);">
             @yield('content')
         </main>
     </div>

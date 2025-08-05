@@ -17,7 +17,36 @@ class RequestController extends Controller
 {
   public function listAll() {
     $requests = Request::all();
+
+    $requests = $requests->map(function ($request) {
+      return [
+        'id' => $request->id,
+        'request_date' => $request->request_date,
+        'user_name' => User::find($request->user_id)->name,
+        'description' => $request->description,
+      ];
+    });
+
     return view('requests.index', compact('requests'));
+  }
+
+  public function seeRequestDetails(int $id) {
+    $request = Request::find($id);
+
+    $requestUser = User::find($request->user_id);
+
+    $items = RequestItem::where('request_id', $id)->get();
+
+    $items = $items->map(function ($item) {
+      return [
+        'id' => $item->id,
+        'product_id' => $item->product_id,
+        'items_quantity' => $item->items_quantity,
+        'product_name' => Product::find($item->product_id)->name,
+      ];
+    });
+
+    return view('requests.show', compact('request', 'items', 'requestUser'));
   }
 
   public function startARequest(RequestHttp $httpRequest) {
@@ -125,23 +154,6 @@ class RequestController extends Controller
     return redirect()->route('requests.index')->with('success', 'Requisição executada.');
   }
 
-  public function seeRequestDetails(int $id) {
-    $request = Request::find($id);
-
-    $items = RequestItem::where('request_id', $id)->get();
-
-    $items = $items->map(function ($item) {
-      return [
-        'id' => $item->id,
-        'product_id' => $item->product_id,
-        'items_quantity' => $item->items_quantity,
-        'product_name' => Product::find($item->product_id)->name,
-      ];
-    });
-
-    return view('requests.show', compact('request', 'items'));
-  }
-
   public function updateRequest(RequestHttp $httpRequest, int $id) {
     $validator = Validator::make($httpRequest->all(), [
       'user_id' => 'required|exists:users,id',
@@ -198,8 +210,19 @@ class RequestController extends Controller
 
     $items = RequestItem::where('request_id', $id)->get();
     
-    $products = Product::all();
+    $items = $items->map(function ($item) {
+      return [
+        'id' => $item->id,
+        'product_id' => $item->product_id,
+        'items_quantity' => $item->items_quantity,
+        'product_name' => Product::find($item->product_id)->name,
+      ];
+    });
     
-    return view('requests.edit', compact('request', 'items', 'products'));
+    $products = Product::all();
+
+    $requestUser = User::find($request->user_id);
+    
+    return view('requests.edit', compact('request', 'items', 'products', 'requestUser'));
   }
 }

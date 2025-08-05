@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center">
       <h1>Editar produto: {{ $product->name }}</h1>
       
-      <a href="{{ route('products.show', $product->id) }}" class="btn btn-secondary">Voltar</a>
+      <a href="{{ route('products.index') }}" class="btn btn-secondary">Voltar</a>
     </div>
 
     <form method="POST" action="{{ route('products.update', $product->id) }}" class="mt-3 container card p-4">

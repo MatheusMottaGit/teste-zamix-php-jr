@@ -1,14 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-  <div class="container">
+  <div class=" container">
     @if(session('success'))
       <div class="alert alert-success">
         {{ session('success') }}
       </div>
     @endif
 
-    @if(session('errors'))
+    @if(session('errors'))s
       <div class="alert alert-danger">
         {{ session('errors') }}
       </div>
@@ -23,7 +23,7 @@
     </div>
 
     @if ($product->type === 'simple')
-      <table class="mt-3 table table-bordered">
+      <table class="table table-bordered mt-3">
         @php
           $types = [
             'simple' => 'Simples',
@@ -68,18 +68,21 @@
       </table>
     @endif
 
-    <div class="card mt-3 p-3">
-      <form action="{{ route('stock.products.checkIn', $product->id) }}" method="POST">
-        @csrf
-        @method('POST')
+    <div class="card">
+      <div class="card-body">
+        <h3 class="card-title">Entrada no estoque</h3>
+        <form action="{{ route('stock.products.checkIn', $product->id) }}" method="POST">
+          @csrf
+          @method('POST')
 
-        <div class="form-group">
-          <label for="product_quantity">Quantidade requerida</label>
-          <input type="number" name="product_quantity" class="form-control" required>
-        </div>
+          <div class="form-group">
+            <label for="product_quantity">Quantidade requisitada</label>
+            <input type="number" name="product_quantity" class="form-control" required>
+          </div>
 
-        <button type="submit" class="btn btn-primary">Dar entrada no estoque</button>
-      </form>
+          <button type="submit" class="btn btn-primary">Registrar entrada</button>
+        </form>
+      </div>
     </div>
   </div>
 @endsection

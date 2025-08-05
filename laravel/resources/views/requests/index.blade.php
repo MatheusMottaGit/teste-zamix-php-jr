@@ -42,17 +42,18 @@
         <tbody>
           @foreach ($requests as $request)
             <tr>
-              <td class="text-center">{{ $request->id }}</td>
-              <td class="text-center">{{ $request->request_date }}</td>
-              <td class="text-center">{{ $request->user_id }}</td>
-              <td class="text-center">{{ $request->description }}</td>
+              <td class="text-center">{{ $request['id'] }}</td>
+              <td class="text-center">{{ $request['request_date'] }}</td>
+              <td class="text-center">{{ $request['user_name'] }}</td>
+              <td class="text-center">{{ $request['description'] }}</td>
               <td class="text-center">
-                <div class="d-flex align-items-center justify-content-center">
-                  <a href="{{ route('requests.show', $request->id) }}" class="text-white btn btn-info">Ver detalhes</a>
 
-                  <a href="{{ route('requests.edit', $request->id) }}" class="text-white btn btn-warning mx-2">Editar</a>
+                <div class="d-flex align-items-center justify-content-center">
+                  <a href="{{ route('requests.show', $request['id']) }}" class="text-white btn btn-info">Ver detalhes</a>
+
+                  <a href="{{ route('requests.edit', $request['id']) }}" class="text-white btn btn-warning mx-2">Editar</a>
                   
-                  <form action="{{ route('requests.delete', $request->id) }}" method="POST">
+                  <form action="{{ route('requests.delete', $request['id']) }}" method="POST">
                     @csrf
                     @method('DELETE')
 

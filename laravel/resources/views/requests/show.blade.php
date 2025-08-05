@@ -52,7 +52,7 @@
         <tr>
           <td class="text-center">{{ $request->id }}</td>
           <td class="text-center">{{ $request->request_date }}</td>
-          <td class="text-center">{{ $request->user_id }}</td>
+          <td class="text-center">{{ $requestUser->name }}</td>
         </tr>
       </tbody>
     </table>
