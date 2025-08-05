@@ -73,6 +73,7 @@ class RequestController extends Controller
     if($validator->fails()) {
       return redirect()->route('requests.show', $requestId)->with('errors', $validator->errors()->first());
     }
+    
     foreach ($httpRequest->items as $item) {
       $product = Product::find($item['product_id']);
       

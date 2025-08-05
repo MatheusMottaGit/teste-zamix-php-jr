@@ -38,19 +38,31 @@ class StockController extends Controller
             $prodStock->save();
         } else if ($product->type === 'compound') {
             $components = ProductCompose::where('compound_product_id', $product->id)->get();
-            // dd($components);
 
             if (count($components) === 0) {
                 return redirect()->route('products.show', $product->id)->with('errors', 'Produtos compostos não constam no estoque. Adicione componentes.');
             }
+            
+            // 2 - arroz (20 + 10) = 30
+            // 1 - feijao (10 + 10) = 20
+            // 3 - cafe (30 + 10) = 40
+
+            StockMovement::create([ // movimentação do produto composto
+                'request_id' => null,
+                'product_id' => $product->id,
+                'quantity' => $request->product_quantity, 
+                'type' => 'in',
+                'movement_date' => now(),
+                'cost_price' => $product->cost_price
+            ]);
 
             foreach ($components as $component) {
                 $prodStock = Stock::where('product_id', $component->simple_product_id)->first();
 
-                StockMovement::create([
+                StockMovement::create([ // movimentação do produto componente
                     'request_id' => null,
-                    'product_id' => $product->id,
-                    'quantity' => $request->product_quantity, 
+                    'product_id' => $component->simple_product_id,
+                    'quantity' => $component->simple_product_quantity * $request->product_quantity, 
                     'type' => 'in',
                     'movement_date' => now(),
                     'cost_price' => $product->cost_price
