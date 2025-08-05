@@ -31,8 +31,9 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
 
 ## Tecnologias
 
-- Laravel 5.6
-- MySQL / SQL
+- `PHP:7.2`
+- `Laravel 5.6`
+- `MySQL / SQL`
 
 ## Observações
 
