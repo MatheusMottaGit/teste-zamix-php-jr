@@ -57,6 +57,7 @@ class ProductController extends Controller
             ]);
 
             return redirect()->route('products.index')->with('success', 'Produto criado.');
+
         } else if ($validated['type'] === 'compound') {
             // remove os campos nulos, caso o ao criar não precise ter algum produto
             $components = array_filter($validated['components'], function ($component) {
@@ -124,6 +125,7 @@ class ProductController extends Controller
                 'sale_price' => $validated['sale_price'],
                 'cost_price' => $validated['cost_price'],
             ]);
+
         } else if($newType === 'compound') {
             $product->update([
                 'name' => $validated['name'],
@@ -184,6 +186,7 @@ class ProductController extends Controller
             Stock::where('product_id', $product->id)->delete();
 
             $product->delete();
+            
         } else if ($product->type === 'compound') {
             ProductCompose::where('compound_product_id', $product->id)->delete();
 
