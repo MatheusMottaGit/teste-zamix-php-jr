@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use App\Product;
 use App\ProductCompose;
 use App\Stock;
@@ -38,24 +40,14 @@ class ProductController extends Controller
         return view('products.show', compact('product', 'compoundComponents'));
     }
 
-    public function createProduct(Request $request) {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'sale_price' => 'required|numeric',
-            'cost_price' => 'nullable|numeric',
-            'type' => 'required|string|in:simple,compound',
-            'components' => 'nullable|array',
-        ]);
+    public function createProduct(CreateProductRequest $request) {
+        $validated = $request->validated();
 
-        if($validator->fails()) {
-            return redirect()->route('products.create')->with('errors', $validator->errors());
-        }
-
-        if ($request->type === 'simple') {
+        if ($validated['type'] === 'simple') {
             $product = Product::create([
-                'name' => $request->name,
-                'sale_price' => $request->sale_price,
-                'cost_price' => $request->cost_price,
+                'name' => $validated['name'],
+                'sale_price' => $validated['sale_price'],
+                'cost_price' => $validated['cost_price'],
                 'type' => 'simple',
             ]);
 
@@ -65,9 +57,9 @@ class ProductController extends Controller
             ]);
 
             return redirect()->route('products.index')->with('success', 'Produto criado.');
-        } else if ($request->type === 'compound') {
+        } else if ($validated['type'] === 'compound') {
             // remove os campos nulos, caso o ao criar não precise ter algum produto
-            $components = array_filter($request->components, function ($component) {
+            $components = array_filter($validated['components'], function ($component) {
                 return $component['quantity'] !== null && $component['quantity'] > 0;
             });
 
@@ -76,8 +68,8 @@ class ProductController extends Controller
             }
 
             $compoundProduct = Product::create([
-                'name' => $request->name,
-                'sale_price' => $request->sale_price,
+                'name' => $validated['name'],
+                'sale_price' => $validated['sale_price'],
                 'cost_price' => null,
                 'type' => 'compound',
             ]);
@@ -110,20 +102,8 @@ class ProductController extends Controller
         }
     }
 
-    public function updateProduct(Request $request, int $id) {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'sale_price' => 'required|numeric',
-            'cost_price' => 'nullable|numeric',
-            'type' => 'required|string|in:simple,compound',
-            'components' => 'nullable|array',
-            'components.*.quantity' => 'required|numeric|min:1',
-            'components.*.id' => 'required|exists:products,id',
-        ]);
-
-        if($validator->fails()) {
-            return redirect()->route('products.index')->with('errors', $validator->errors());
-        }
+    public function updateProduct(UpdateProductRequest $request, int $id) {
+        $validated = $request->validated();
 
         $product = Product::find($id);
 
@@ -132,7 +112,7 @@ class ProductController extends Controller
         }
 
         $oldType = $product->type;
-        $newType = $request->type;
+        $newType = $validated['type'];
 
         if ($oldType !== $newType) {
             return redirect()->route('products.index')->with('errors', 'Não é possível "transformar" um produto simples em composto e vice-versa.');
@@ -140,18 +120,18 @@ class ProductController extends Controller
 
         if($newType === 'simple') {
             $product->update([
-                'name' => $request->name,
-                'sale_price' => $request->sale_price,
-                'cost_price' => $request->cost_price,
+                'name' => $validated['name'],
+                'sale_price' => $validated['sale_price'],
+                'cost_price' => $validated['cost_price'],
             ]);
         } else if($newType === 'compound') {
             $product->update([
-                'name' => $request->name,
-                'sale_price' => $request->sale_price
+                'name' => $validated['name'],
+                'sale_price' => $validated['sale_price']
             ]);
 
             $totalCostPrice = 0;
-            $components = array_filter($request->components, function ($component) {
+            $components = array_filter($validated['components'], function ($component) {
                 return $component['quantity'] !== null && $component['quantity'] > 0;
             });
 

@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\ProductCompose;
 use App\Stock;
 use App\StockMovement;
+use App\Http\Requests\StartReqRequest;
+use App\Http\Requests\ExecuteReqRequest;
+use App\Http\Requests\UpdateReqRequest;
 use Illuminate\Http\Request as RequestHttp;
 use App\Request;
 use App\RequestItem;
@@ -49,26 +52,18 @@ class RequestController extends Controller
     return view('requests.show', compact('request', 'items', 'requestUser'));
   }
 
-  public function startARequest(RequestHttp $httpRequest) {
-    $validator = Validator::make($httpRequest->all(), [
-      // 'user_id' => 'required|exists:users,id',
-      'request_date' => 'required|date',
-      'items' => 'required|array',
-      'items.*.product_id' => 'required|exists:products,id',
-      'items.*.items_quantity' => 'nullable|integer|min:1',
-    ]);
+  public function startARequest(StartReqRequest $request) {
+    $validated = $request->validated();
 
-    if($validator->fails()) {
-      return redirect()->route('requests.create')->with('errors', $validator->errors());
-    }
+    $userId = Auth::user()->id;
 
     $request = Request::create([
-      'user_id' => Auth::user()->id,
-      'request_date' => $httpRequest->request_date,
-      'description' => $httpRequest->description,
+      'user_id' => $userId,
+      'request_date' => $validated['request_date'],
+      'description' => $validated['description'],
     ]);
     
-    $items = array_filter($httpRequest->items, function ($item) {
+    $items = array_filter($validated['items'], function ($item) {
       return $item['items_quantity'] !== null && $item['items_quantity'] > 0;
     });
 
@@ -83,15 +78,8 @@ class RequestController extends Controller
     return redirect()->route('requests.index')->with('success', 'Requisição criada.');
   }
 
-  public function executeRequest(RequestHttp $httpRequest, int $requestId) { // apenas de saída do estoque
-    $validator = Validator::make($httpRequest->all(), [
-      'user_id' => 'required|exists:users,id',
-      'request_date' => 'required|date',
-      'items' => 'required|array',
-      'items.*.id' => 'required|exists:request_items,id',
-      'items.*.items_quantity' => 'required|integer|min:1',
-      'items.*.product_id' => 'required|exists:products,id',
-    ]);
+  public function executeRequest(ExecuteReqRequest $request, int $requestId) { // apenas de saída do estoque
+    $validated = $request->validated();
 
     $request = Request::find($requestId);
 
@@ -99,11 +87,7 @@ class RequestController extends Controller
       return redirect()->route('requests.index')->with('errors', 'Requisição não encontrada.');
     }
 
-    if($validator->fails()) {
-      return redirect()->route('requests.show', $requestId)->with('errors', $validator->errors()->first());
-    }
-    
-    foreach ($httpRequest->items as $item) {
+    foreach ($validated['items'] as $item) {
       $product = Product::find($item['product_id']);
       
       if ($product->type === 'simple') {
@@ -154,18 +138,8 @@ class RequestController extends Controller
     return redirect()->route('requests.index')->with('success', 'Requisição executada.');
   }
 
-  public function updateRequest(RequestHttp $httpRequest, int $id) {
-    $validator = Validator::make($httpRequest->all(), [
-      'user_id' => 'required|exists:users,id',
-      'request_date' => 'required|date',
-      'items' => 'required|array',
-      'items.*.product_id' => 'required|exists:products,id',
-      'items.*.items_quantity' => 'required|integer|min:1',
-    ]);
-
-    if($validator->fails()) {
-      return redirect()->route('requests.index')->with('errors', $validator->errors()->first());
-    }
+  public function updateRequest(UpdateReqRequest $request, int $id) {
+    $validated = $request->validated();
 
     $request = Request::find($id);
 
@@ -174,13 +148,13 @@ class RequestController extends Controller
     }
 
     $request->update([
-      'user_id' => $httpRequest->user_id,
-      'request_date' => $httpRequest->request_date,
+      'user_id' => $validated['user_id'],
+      'request_date' => $validated['request_date'],
     ]);
 
     RequestItem::where('request_id', $id)->delete();
     
-    foreach($httpRequest->items as $item) {
+    foreach($validated['items'] as $item) {
       RequestItem::create([
         'request_id' => $request->id,
         'product_id' => $item['product_id'],
