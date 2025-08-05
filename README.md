@@ -34,7 +34,7 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
 - `PHP:7.2`
 - `Laravel 5.6`
 - `MySQL / SQL`
-- `Bootstrap`
+- `CSS + Bootstrap`
 
 ## Diagramas
 
