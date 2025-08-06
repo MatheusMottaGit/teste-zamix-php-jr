@@ -4,7 +4,7 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
 
 ## Rodar o projeto
 
-1. **Ambiente necessário**
+**Ambiente necessário**
    - Sua máquina deve possuir `PHP >= 7.2`, conforme recomenda a própria [documentação do Laravel](https://laravel.com/docs/5.6/installation): 
    - No seu SGBD, execute os arquivos SQL.
   
@@ -18,6 +18,13 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
    ```
       php artisan serve
    ```
+
+* No meu caso, como não possuo, utilizei de Docker:
+* Na raíz do projeto execute:
+  
+     ```
+      docker compose up --build -d
+     ```
    
 ## Funcionalidades desenvolvidas
 
