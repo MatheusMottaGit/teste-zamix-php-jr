@@ -19,8 +19,8 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
       php artisan serve
    ```
 
-* No meu caso, como não possuo, utilizei de Docker:
-* Na raíz do projeto execute:
+- No meu caso, como não possuo, utilizei de Docker:
+- Na raíz do projeto execute:
   
      ```
       docker compose up --build -d
