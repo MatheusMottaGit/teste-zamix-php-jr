@@ -41,7 +41,7 @@
         <div class="mb-2 col">
           <label for="type" class="form-label">Tipo</label>
   
-          <select class="form-select w-100 prod-type" name="type" id="type" autofocus>
+          <select class="h-50 border rounded border-secondary-subtle px-2 d-flex align-items-center w-100 prod-type " name="type" id="type" autofocus>
             <option selected>Escolha o tipo do produto</option>
             @foreach ($productTypes as $key => $type)
               <option value="{{ $key }}">{{ $type }}</option>

@@ -167,7 +167,16 @@ class RequestController extends Controller
 
   public function deleteRequest(int $id) {
     $request = Request::find($id);
-    $request->delete();
+    
+    $hasMovements = StockMovement::where('request_id', $id)->exists();
+
+    if ($hasMovements) {
+      return redirect()->route('requests.index')->with('errors', 'Não é possível retirar essa requisição. Está registrado que ela já foi executada.');
+    
+    } else {
+      $request->delete();
+    }
+
     return redirect()->route('requests.index')->with('success', 'Requisição deletada.');
   }
 
@@ -181,6 +190,12 @@ class RequestController extends Controller
 
   public function updateRequestForm(int $id) {
     $request = Request::find($id);
+
+    $hasMovements = StockMovement::where('request_id', $id)->exists();
+
+    if ($hasMovements) {
+      return redirect()->route('requests.index')->with('errors', 'Não é possível editar essa requisição. Está registrado que ela já foi executada.');
+    }
 
     $items = RequestItem::where('request_id', $id)->get();
     

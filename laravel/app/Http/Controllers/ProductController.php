@@ -37,7 +37,24 @@ class ProductController extends Controller
             }
         }
 
-        return view('products.show', compact('product', 'compoundComponents'));
+        $stockQuantity = 0;
+
+        if ($product->type === 'simple') {
+            $stockQuantity = Stock::where('product_id', $product->id)->first()->product_quantity;
+
+        } else if ($product->type === 'compound') {
+            $components = ProductCompose::where('compound_product_id', $product->id)->get();
+
+            foreach ($components as $component) {
+                $prodStock = Stock::where('product_id', $component->simple_product_id)->first();
+
+                if ($prodStock) {
+                    $stockQuantity += $prodStock->product_quantity * $component->simple_product_quantity;
+                }
+            }
+        }
+
+        return view('products.show', compact('product', 'compoundComponents', 'stockQuantity'));
     }
 
     public function createProduct(CreateProductRequest $request) {

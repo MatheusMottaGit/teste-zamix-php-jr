@@ -30,8 +30,8 @@ class CreateProductRequest extends FormRequest
             'cost_price' => 'nullable|numeric',
             'type' => 'required|string|in:simple,compound',
             'components' => 'nullable|array',
-            'components.*.quantity' => 'required|numeric|min:1',
-            'components.*.id' => 'required|exists:products,id',
+            'components.*.quantity' => 'nullable|numeric|min:1',
+            'components.*.id' => 'nullable|exists:products,id',
         ];
     }
 }

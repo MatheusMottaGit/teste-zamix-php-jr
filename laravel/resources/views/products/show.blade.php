@@ -49,6 +49,13 @@
           </tr>
         </tbody>
       </table>
+
+      <div class="card p-3 mb-3">
+        <p class="text-muted text-xl-start">
+          <i>Quantidade em estoque: {{ $stockQuantity }}</i>
+        </p>
+    </div>
+
     @elseif ($product->type === 'compound')
       <table class="table table-bordered mt-3">
         <thead>
@@ -66,6 +73,12 @@
           @endforeach
         </tbody>
       </table>
+
+      <div class="card p-3 mb-3">
+        <p class="text-muted text-xl-start">
+          <i>Quantidade de componentes em estoque: {{ $stockQuantity }}</i>
+        </p>
+       </div>
     @endif
 
     <div class="card">

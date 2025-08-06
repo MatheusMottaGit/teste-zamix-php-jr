@@ -30,6 +30,7 @@ class StartReqRequest extends FormRequest
             'items' => 'required|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.items_quantity' => 'nullable|integer|min:1',
+            'description' => 'nullable|string|max:255',
         ];
     }
 }
