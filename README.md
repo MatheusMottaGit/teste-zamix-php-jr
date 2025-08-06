@@ -18,8 +18,8 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
    ```
       php artisan serve
    ```
-# Exceção
-   - No meu caso, como não possuo, utilizei de Docker:
+## Exceção
+   - No meu caso, como não possuo PHP >= 7.2, utilizei de Docker:
    - Na raíz do projeto execute:
   
      ```
