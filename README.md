@@ -18,15 +18,15 @@ Projeto desenvolvido como teste técnico, para a vaga de *Programador PHP Jr. na
    ```
       php artisan serve
    ```
-
-- No meu caso, como não possuo, utilizei de Docker:
-- Na raíz do projeto execute:
+# Exceção
+   - No meu caso, como não possuo, utilizei de Docker:
+   - Na raíz do projeto execute:
   
      ```
       docker compose up --build -d
      ```
-- Depois, entre no container do app com `docker exec -it nome-do-container bash`
-- Execute as migrations com `php artisan migrate`, ou então estabeleça conexão com o banco no seu SGBD e execute o arquivo `sql/database.sql`
+   - Depois, entre no container do app com `docker exec -it nome-do-container bash`
+   - Execute as migrations com `php artisan migrate`, ou então estabeleça conexão com o banco no seu SGBD e execute o arquivo `sql/database.sql`
    
 ## Funcionalidades desenvolvidas
 
